@@ -31,17 +31,19 @@ def add_user(username, password_hash, role="user"):
     conn.close()
 
 
-def find_user(username, password_hash):
+# finds the user by username only, because bcrypt adds a random salt
+# so the stored hash can't be compared inside the SQL query
+def find_user(username):
     conn = get_connection()
     if SECURE_MODE:
-        # fixed: same idea, the input can't change the query
+        # fixed: the input can't change the query
         user = conn.execute(
-            "SELECT * FROM users WHERE username = ? AND password = ?",
-            (username, password_hash),
+            "SELECT * FROM users WHERE username = ?",
+            (username,),
         ).fetchone()
     else:
-        # VULNERABLE: typing  admin' --  as the username skips the password check
-        query = f"SELECT * FROM users WHERE username = '{username}' AND password = '{password_hash}'"
+        # VULNERABLE: the input goes straight into the SQL string
+        query = f"SELECT * FROM users WHERE username = '{username}'"
         user = conn.execute(query).fetchone()
     conn.close()
     return user
