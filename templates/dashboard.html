@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <strong>Secure Web App</strong>
+        <span>
+            {# hiding the link is only for a cleaner page, it is NOT the protection;
+               the real check is @role_required("admin") on the /admin route #}
+            {% if user["role"] == "admin" %}<a href="{{ url_for('admin') }}">Admin page</a>{% endif %}
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </span>
+    </nav>
+
+    <main>
+        {# {{ ... }} is auto-escaped by Jinja2, so a username like <b>x</b> shows as text #}
+        <h1>Welcome, {{ user["username"] }}</h1>
+
+        <section class="card">
+            <h2>Your profile</h2>
+            <table>
+                <tr><th>User ID</th><td>{{ user["id"] }}</td></tr>
+                <tr><th>Username</th><td>{{ user["username"] }}</td></tr>
+                <tr><th>Role</th><td>{{ user["role"] }}</td></tr>
+                <tr><th>Your comments</th><td>{{ comment_count }}</td></tr>
+                <tr><th>Connection</th><td>{{ "HTTPS (encrypted)" if is_https else "HTTP (not encrypted)" }}</td></tr>
+                <tr><th>Session timeout</th><td>{{ session_minutes }} minutes of inactivity</td></tr>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>Comments</h2>
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}<p class="error">{{ message }}</p>{% endfor %}
+            {% endwith %}
+            <form method="POST" action="{{ url_for('post_comment') }}">
+                <textarea name="content" rows="3" maxlength="500" placeholder="Write a comment..." required></textarea>
+                <button type="submit">Post comment</button>
+            </form>
+
+            {% for c in comments %}
+                <div class="comment">
+                    <div class="meta">{{ c["username"] }} &middot; {{ c["created_at"] }}</div>
+                    {% if xss_secure %}
+                        {# FIXED: auto-escaped, < and > become &lt; and &gt; so HTML shows as plain text #}
+                        <div>{{ c["content"] }}</div>
+                    {% else %}
+                        {# VULNERABLE: |safe turns off escaping, so HTML and scripts in the comment run #}
+                        <div>{{ c["content"]|safe }}</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <p>No comments yet.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>

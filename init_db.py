@@ -1,5 +1,5 @@
 import sqlite3
-import hashlib
+import bcrypt
 
 conn = sqlite3.connect("database.db")
 cur = conn.cursor()
@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS comments (
 """)
 
 # one admin account so Task 3 can test the admin page
-# MD5 is weak on purpose here, Task 2 moves passwords to bcrypt later
-admin_pw = hashlib.md5("Admin@123".encode()).hexdigest()
+admin_pw = bcrypt.hashpw("Admin@123".encode(), bcrypt.gensalt()).decode()
 cur.execute(
     "INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)",
     ("admin", admin_pw, "admin"),
