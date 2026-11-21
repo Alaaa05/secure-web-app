@@ -47,3 +47,54 @@ def find_user(username):
         user = conn.execute(query).fetchone()
     conn.close()
     return user
+
+# ---------------- Task 3: comments and admin queries ----------------
+# These always use ? placeholders. The SQL injection demo is only for
+# login and register (SECURE_MODE above), so the new pages stay safe.
+
+def add_comment(user_id, content):
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO comments (user_id, content) VALUES (?, ?)",
+        (user_id, content),
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_comments():
+    # newest first, with the author's username
+    conn = get_connection()
+    rows = conn.execute(
+        """SELECT comments.id, comments.content, comments.created_at, users.username
+           FROM comments JOIN users ON comments.user_id = users.id
+           ORDER BY comments.id DESC"""
+    ).fetchall()
+    conn.close()
+    return rows
+
+
+def count_user_comments(user_id):
+    conn = get_connection()
+    count = conn.execute(
+        "SELECT COUNT(*) FROM comments WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+    conn.close()
+    return count
+
+
+def delete_comment(comment_id):
+    conn = get_connection()
+    conn.execute("DELETE FROM comments WHERE id = ?", (comment_id,))
+    conn.commit()
+    conn.close()
+
+
+def get_all_users():
+    # used only by the admin page; we never select the password column
+    conn = get_connection()
+    rows = conn.execute(
+        "SELECT id, username, role FROM users ORDER BY id"
+    ).fetchall()
+    conn.close()
+    return rows

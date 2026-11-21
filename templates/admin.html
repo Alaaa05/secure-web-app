@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <strong>Secure Web App &middot; Admin</strong>
+        <span>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </span>
+    </nav>
+
+    <main>
+        <h1>Admin page</h1>
+        {% if not rbac_secure %}
+            <p class="error">Vulnerable mode: this page has no access check (RBAC_SECURE = False).</p>
+        {% endif %}
+
+        <section class="card">
+            <h2>All users</h2>
+            <table>
+                <tr><th>ID</th><th>Username</th><th>Role</th></tr>
+                {% for u in users %}
+                    <tr><td>{{ u["id"] }}</td><td>{{ u["username"] }}</td><td>{{ u["role"] }}</td></tr>
+                {% endfor %}
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>Manage comments</h2>
+            {% for c in comments %}
+                <div class="comment">
+                    <div class="meta">#{{ c["id"] }} &middot; {{ c["username"] }} &middot; {{ c["created_at"] }}</div>
+                    {% if xss_secure %}
+                        <div>{{ c["content"] }}</div>
+                    {% else %}
+                        <div>{{ c["content"]|safe }}</div>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('admin_delete_comment', comment_id=c['id']) }}">
+                        <button type="submit" class="danger">Delete</button>
+                    </form>
+                </div>
+            {% else %}
+                <p>No comments.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
