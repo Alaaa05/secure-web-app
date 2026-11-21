@@ -9,7 +9,7 @@ The app was first built with common security vulnerabilities on purpose, includi
 1. `pip install -r requirements.txt`
 2. `python init_db.py`
 3. `python app.py`
-4. Open http://127.0.0.1:5000
+4. Open https://127.0.0.1:5000 (the browser warns about the certificate, click Advanced then Proceed)
    
 ## Testing SQL Injection (Task 1)
 The login and register queries used to paste the user's input straight into the SQL. Typing `admin' --` as the username logs you in as admin with any password, because `--` turns the rest of the query, including the password check, into a comment. The fix uses `?` placeholders, so the input is always treated as data and never as part of the query.
@@ -18,7 +18,9 @@ Quick test: run `python test_sqli.py`. It tries `admin' --` with a wrong passwor
 
 In the app: open db.py and set `SECURE_MODE = False`, then go to /login and enter `admin' --` with any password. You get in as admin. Set it back to `True` and the same login fails.
 
-Password rules: run `python test_password.py`. A password needs at least 8 characters, an uppercase letter, a lowercase letter, a number and a special character. The test checks three weak passwords and one valid one.
+Password rules: run `python test_password.py`. A password needs at least 8 characters, an uppercase letter, a lowercase letter, a number and a special character. The test checks three weak passwords 
+and one valid one.
+
 ## Testing Authentication (Task 2)
 The admin account is for testing only (admin / Admin@123) and requires running init_db.py first to create the database.
 
