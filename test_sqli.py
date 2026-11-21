@@ -1,26 +1,21 @@
-import hashlib
 import db
 
-# the attack: the  --  turns the rest of the SQL query into a comment,
-# so the password check never runs
-attack_username = "admin' --"
-wrong_password = hashlib.md5("totally-wrong".encode()).hexdigest()
+# a username with a quote and --  inside it.
+# a safe query should look for a user with exactly this name and find nobody.
+test_username = "admin' --"
 
-print("Trying to log in as:", attack_username)
-print("with a wrong password\n")
+print("Looking up the username:", test_username, "\n")
 
-# run the attack against the vulnerable version
 db.SECURE_MODE = False
-user = db.find_user(attack_username, wrong_password)
+user = db.find_user(test_username)
 if user:
-    print("Vulnerable version: logged in as", user["username"], "with role", user["role"])
+    print("Vulnerable version: the input changed the query and returned", user["username"])
 else:
-    print("Vulnerable version: login failed")
+    print("Vulnerable version: no user found")
 
-# run the same attack against the fixed version
 db.SECURE_MODE = True
-user = db.find_user(attack_username, wrong_password)
+user = db.find_user(test_username)
 if user:
-    print("Fixed version: logged in as", user["username"], "with role", user["role"])
+    print("Fixed version: the input changed the query and returned", user["username"])
 else:
-    print("Fixed version: login failed")
+    print("Fixed version: no user found, the input was treated as plain text")
