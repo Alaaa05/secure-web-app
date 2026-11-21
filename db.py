@@ -4,7 +4,7 @@ DB_NAME = "database.db"
 
 # False = vulnerable version, True = fixed version
 # we keep both so we can show the attack before and after in the report
-SECURE_MODE = False
+SECURE_MODE = True
 
 
 def get_connection():
